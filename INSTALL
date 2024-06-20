@@ -1,0 +1,90 @@
+jigl install instructions
+-------------------------
+Linux/Unix
+----------
+Please make sure you have the required programs installed before trying to
+run jigl. You will need perl, ImageMagick and jhead. If you don't have these
+please visit the website for links to the latest version of these programs.
+
+http://xome.net/projects/jigl
+----
+
+Untar the jigl-X.x.tgz file:
+
+> tar zxvf jiglX.x.tgz
+
+This will create the directory jigl-X.x. In that directory copy the jigl.pl
+file to a directory in your path and make the file executable.
+
+> cp jigl-X.x/jigl.pl /usr/local/bin
+> chmod a+rx /usr/local/bin/jigl.pl
+
+You should now be able to use jigl from anywhere.
+
+>./jigl --help
+
+Windows 2000/XP
+---------------
+jigl does NOT work on versions of windows before windows 2000. This includes
+Windows ME, 98/95 and anything else that's not 2000 or XP. :)
+
+Please make sure you have the required programs installed before trying to
+run jigl. You will need perl, ImageMagick and jhead. If you don't have these
+please visit the website for links to the latest version of these programs
+and detailed instructions on getting jigl working under windows.
+
+http://xome.net/projects/jigl
+----
+
+Note: These instructions are for Windows 2000.  Windows XP will likely be
+similiar but may not match exactly.
+
+Changing the Environment: (or how your computer knows where programs are)
+-------------------------
+The PATH is a parameter that tells your computer where certain files live on
+your harddrive.  By setting this parameter, you can simply type the name of
+a program at the command line and cause it to run.  For example, if you open
+a command prompt and type notepad, the Windows Notepad program will start up.
+
+In order for jigl to run, your computer needs to know where to find it.
+* Choose a directory to place jigl.pl.  I use C:\bin.
+* Copy the jigl.pl file from the jigl-X.x.tgz file (winzip should handle this
+  with out a problem) to the directory you chose above.
+
+   * Start -> Settings -> Control Panel -> System
+     (or hit Windows Key-Pause/Break)
+   * Select Advanced tab
+   * Select Environment Variables
+   * In either User Variables or System Variables, select PATH.
+   * Hit the Edit... button
+
+   * In Variable Value, add the directory you chose above
+      (for example, C:\bin) to the end of the list. Separate
+      it from the other directories with a semicolon (;).
+   WARNING: Be careful to save the other directories that are
+      listed there.  If you delete them, hit Cancel and the
+      start back at the Edit... instructions.
+
+   * Hit OK (Closes the edit box)
+
+   * Select New... in the User variables section (top half of window)
+   * Fill in the box as follows:
+      Variable Name: HOME
+      Variable Value: C:\Documents and Settings\name
+          where name is the name you use to access your computer
+   * Hit OK (Closes the edit box)
+   * Hit OK (Closes the Environment Variables)
+   * Hit OK (Closes the System Properties)
+
+Testing the install:
+-------------------
+   * Open a command prompt (Start -> Programs -> Accessories -> Command Prompt)
+   * Type path.  Look through the output and make sure the directory you just
+     added is in the list.
+   * Type jigl.pl --help. The program should run and you should see all the
+     options available to you.
+   * Type exit to close the command prompt window.
+Note: When changing the PATH or installing programs, such as those
+   below, that modify the PATH, you must open a new Command Prompt in
+   order to see the changes.  You do not need to reboot your machine.
+

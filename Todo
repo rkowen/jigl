@@ -1,0 +1,103 @@
+jigl TODO list - not in any particular order
+-------------------------------------------------------------------------------
+Legend:
+- Feature to be worked on for this release
+* Feature is a work in progress
+x Feature is finished
+o Feature will be worked on for a later release
+-------------------------------------------------------------------------------
+o option to not display exif comment tags in the exif output on the info slide.
+  this would be useful if you store your comments in the exif headers of your
+  images. That way you don't have to see the description twice on the info
+  pages. Once under the image and once in the exif info table. it can be
+  some what annoying to have really long comments displayed in the exif table.
+o option to display a count of the number of on slides in the gallery on the
+  index.html page. Probably up top somewhere.
+o create a nice little, simple, windows program to run jigl from. Should just
+  allow you to pick directroies, enter command line options in a single text
+  field, and then issue that information to jigl.pl's command line.
+o option to update gallery.dat file with new image files in the directory.
+  This way adding images to a gallery won't require you to re-add your title,
+  header, footer and captions for existing images.
+- option to add filename (less extension) under thumbnail.
+- Add support to detect movies and make a thumbnail of the some frame in the
+  movie. Might be difficult to get working cross platform tho...
+  then, instead of a link to a slide, simply link to download the movie.
+  Might want someway to identify the thumbnail as a movie. Perhaps instead
+  of XxY (size) under the thumbnail, it might say Movie (size) or something.
+o Auto-detect images - for when images don't have file extensions.
+x option to scale the slides and thumbs on the X axis.
+x option to scale the slides and thumbs on the longest axis (X or Y).
+- rewrite the way the options are handled. Needed so we can check dependencies
+  of options - specifically the sx, sy and sle options. mergeOpts() funtion 
+  need to be rewritten so it will merge two sets of options at a time.
+  need to move the calls to checkOpts() to after all the options hashes
+  have been gotten so we can check and merge in the correct order.
+- check the --help and --version options from the cmd line before we do any
+  sort of bounds checking. Otherwise if you have an invalid options in the
+  jigl.opts file or the gallery.dat file it won't display help, it will just
+  exit with an error.
+o do not generate gallery.dat file in directories with no images in it.
+o Tag to put thumnails of next/prev slide on slide page.
+o option to reverse the order of the files when before being added to
+  the gallery.dat file. maybe other types of processing too.. like by date
+  or whatever.
+
+Fixed in jigl 2.0.1
+-------------------
+x quoted options in the gallery.dat or jigl.opts file don't get parsed
+  correctly. ex: -gbs "Go back up" -- only "Go will show up on the page.
+
+Finished for jigl 2.0
+---------------------
+x exit cleanly if the ImageMagick tools can't be found.
+x exit cleanly if $HOME is undefined.
+x make a web/ directory where all the html/theme/slides/thumbs are stored.
+  We only copy the slides/thumbs and theme directory over, not move it. The
+  html files are moved. We only copy the directories since we need to know if
+  the slides or thumbs need to be regenerated or not. Keeping copies in the
+  original directory is the easiest way to do that.
+  The gallery.dat file would still reside in the original directory.
+  There should be an option to change the name of the directory from the
+  default web/ --web-dir|-wd.
+  Note: If the option --use-originals|-uo is used, the output dir is set to .,
+  otherwise we would need to copy all the origianl files to the web/ dir and
+  that has the potential to take up a lot of space, and would be unnecessary
+  since everything you want is in the original dir. Currently there is no way
+  to override this.
+x Move the template files to the theme directories. This includes the 
+  default templates. These should be moved into the default theme dir.
+x The -ut|--update-template option should be changed to remove the local as well
+  as the global template files. The global templates are located in the
+  ~/.jigl/themes/default directory.
+x create a ~/.jigl directory to contain themes and templates.
+x Move the .jiglrc file into the ~/.jigl dir. It's now called ~/.jigl/jigl.opts
+  The old .jiglrc file will NO LONGER be recognized!
+x option to not generate the info pages
+  if no slide pages are generated all references to the slides from the info
+  pages will be removed. This includes next, prev and this-slide links.
+  since the info-page image is just the slide image that has been reduced
+  in half via html height and width tags, even if no slides pages are generated
+  but info pages are, slide images will still be created.
+x option to not generate the slides
+  if no slide pages, link thumbnails on index page to the info-pages
+  if no slide or info pages, thumbnails don't link to anything.
+x Better theme support. Right now we only support modifying the template
+  files. While this is sufficent, it would be nice to have a standard themes
+  directory: $HOME/.jigl/themes where multiple themes can reside.
+x --theme option would also be nice where you can specify the theme you want
+  to use for this run of jigl. This would provide a better integration of
+  themes into jigl.
+x If using a theme, any supporting images/files that go with the theme will
+  be copied into a theme/ directory in the output dir. If the theme only 
+  uses modified templates, nothing will be copied.
+x The gallery theme/ directory will have to be kept out of the recursion loop.
+x The "Next>>"/"Next Info>>" links on the last slide/info-page can now be
+  defined in the theme file as to what they link to, if anything. By default,
+  it don't link to anything, they just prints "Last Slide" or "Last Info".
+x The "<<Prev"/"<<Prev Info" links on the first slide/info-page can now be
+  defined in the theme file as to what they link to, if anything. By default,
+  they don't link to anything, they just prints "First Slide" or "First Info".
+x Add the -gbs|--go-back-string option to change the text for the Go Back URL.
+  By default it's still "Go Back", but you can now change it to say whatever.
+  You could even put html in there if you wanted.

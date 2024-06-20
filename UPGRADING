@@ -1,0 +1,53 @@
+jigl upgrade document.
+Created: 06/03/2003
+Last updated: 10/25/2003 - version 2.0
+
+Upgrading from 1.x to 2.0
+-------------------------
+1) If you have a $HOME/.jiglrc file, this will have to be renamed and moved.
+jigl no longer uses this file. There is now a $HOME/.jigl directory which 
+contains a jigl.opts file as well as a directory for the themes. Your old
+.jiglrc file can simply be renamed to jigl.opts and put in the $HOME/.jigl
+directory. The theme directory and the default theme will be created for you
+when jigl is run.
+
+2) If you run jigl 2.0 on a directory that was previously jiggled with
+version 1.x, you will need to run jigl with the -ut|--update-templates
+option. You only need to do this once. If you do not do this jigl will
+use the template files in your local directory and you will get weird
+results in the html output.
+
+Alternately you can simply remove the index_template, slide_template and
+info_template files from your local directory.
+
+Upgrading from 1.0 to 1.1
+-------------------------
+The index_template file has changed slightly and will require you to update
+this file to use the multiple index feature (option -ir).
+
+There are two ways to update this file.
+1) If you are using the stock index_template you can remove the file from
+your gallery directories. The new template will automatically be generated
+when jigl is run again.
+
+2) If all three of your template files are stock you can simply invoke jigl
+with the -ut option on each of your jigl directories. This will remove your
+current template files and new ones will be generated automatically.
+
+3) If you have modified your index_template file and don't want to redo your
+changes to a new template file here is what you can do to incorporate the
+new features.
+
+The following portion of your template should be changed:
+
+<p><br><center>
+PICTURES
+</center>
+
+The new code should be:
+
+<center>
+INDEX-NAVI
+<p>
+PICTURES
+</center>

@@ -1,0 +1,140 @@
+Version : 2.0.1
+Date    : 11/13/2003
+- Fixed bug where quoted strings weren't being handled correctly in the
+  gallery.dat and jigl.opts file. Thanks to Phill Collins (not the singer)
+  for pointing me to the Text::ParseWords module.
+- Fixed a few references in the code to the old .jiglrc file.
+Version : 2.0
+Date    : 10/24/2003
+- ~/.jiglrc was moved to be ~/.jigl/jigl.opts. The old ~/.jiglrc file will NO
+  LONGER be recognized!!
+- Added a print statement for each picture that gets auto rotated.
+- Fixed bug in themes where short keys that are sub-strings of longer
+  keys were causing problems when the html pages were generated. Thanks to
+  R.K.Owen for finding this!
+- Added --theme <theme_name> option.
+- Themes are stores in ~/.jigl/themes. The default theme is also stored here
+  and is created by the jigl.
+- We no longer store copies of the template files in the local gallery dir.
+  These are all stored in the theme directories and read from there. However,
+  if local template files are found, it will continue to use those. It's
+  recommended that you use the new themes tho. To do this, simply call jigl
+  with the -ut option. (see below)
+- The -ut|--update-template option now removes local as well as global template
+  files. This will cause you to recreate the default theme directory.
+- Added -gs|--generate-slides option. This will cause slide pages to be created.
+- Added -gi|--generate-info option. This will cause info pages to be created.
+- Added -wd|--web-dir option. This allows you to specify a directory where
+  the gallery will be copied once jigl is done running. The default is ./web.
+- Added -gbs|--go-back-string option. Allows user to set the "Go Back" string
+  on the index.html page. Default is still "Go Back". html could be used to
+  include an image instead of just text.
+  Ex: -gbs "<img src=theme/gbimg.gif border=0>" That would use the image,
+  "theme/go-back.gif" as the go back link.
+- First slides/info-pages <<Prev|<<Prev-info links were removed. Now just says
+  "First Slide" or "First Info". A tag was moved into the theme file for this
+  link, so you can change it to say or link to whatever you want.
+- Last slides/info-pages Next>>|Next-info>> links were removed. Now just says
+  "Last Slide" or "Last Info". A tag was moved into the theme file for this
+  link, so you can change it to say or link to whatever you want.
+- A few bug fixes and code cleanup as well.
+====================
+Version : 1.1
+Date    : 06/03/2003
+- Added directory recursion through the -r|--recurse option. This option
+  will only be recognized when called from the command line. This is to help
+  prevent accidental recursive calls if -r was stored in the gallery.dat file
+  or in the users $HOME/.jigrc file. The recursion will take place for ALL of
+  the directories passed in on the command line, or "." if none are specified.
+- Fixed recursion to not walk into the 'slides' and 'thumbs' directories
+- Used the $slideDir and $thumbDir variables in the recursion check.
+- Applied patch from Guy Brand to use POSIX localtime processing and to
+  correct the mkdir calls to include the mask 0755.
+- Added -aro|--auto-rotate-originals option. Does lossless rotation on
+  original images if they support the exif "Orientation" tag. Requires jhead
+  version 2.0 or greater and jpegtran.
+- Added -uec|--use-exif-comment option. Extracts the exif Comment field and
+  makes that the description of the slides. If used in conjunction with the
+  -cg option, the exif comment will be saved in the new gallery.dat file.
+- Added -it|--index-title option. Sets the gallery's titlebar/title. To be
+  used when not using a gallery.dat file.
+- Added -ir|--index-row option. Allows for multiple index pages to be 
+  generated. This requires the user to update their current index_template
+  files. See the -ut option that was also added.
+- Added -ut|--update-templates option which removes the slide, thumb and 
+  index template files. jigl then replaces them with the latest version.
+- We now remove all the html files in the directory (mathing index*.html
+  and [1-9]*.html) before we create new ones. This is to prevent stale files
+  that may exist when the number of index files or slides changes from one
+  run of jigl to another.
+- Changed the default go-back-url to "../index.html" from simply ".."
+====================
+Version : 1.0
+Date    : 05/06/2003
+- Removed options that weren't going to be supported for this release.
+  New ideas will be listed in a TODO document of some sort.
+- Cleaned up the --help output a bit. Fixed some typos and other small stuff.
+- Removed EXIF-INFO-FULL-TABLE tag processing from the info_template
+  processing since we didn't use it.
+- Added necessary support for themes. This involved adding the ability to
+  specify the background color to the INDEX-HEADER, INDEX-FOOTER and PICTURES
+  tags in the index_template file. See the THEMES file for more info on
+  theme support in jigl.
+- Changed the behavior of the slide scaling function. Now the slide will only
+  be scaled if the height of the original image is greater than the sy option.
+  Otherwise the original image will simply be copied.
+- Added -iy|--infoY option. This option was added to prevent small slide
+  images from getting unnecessarily smaller on the info pages.
+- Somehow the sizeToKb function worked it's way back into the code. It should
+  be removed for good now.
+- Fixed a small bug where the -gb option was adding more that one instace of
+  the Go Back link to the header. (dwj)
+====================
+Version : 1.0rc4
+Date    : 04/02/2003
+- NAME CHANGE!! Due to a name conflict with another program I have decided
+  to change the name of the project. jGal is now jigl, which is short for
+  Jason's Image Gallery. Thanks to those who helped me come up
+  with the name. Now collect yourself, and get busy jiggling those photos!
+- Hopefully last release candidate.
+- Added two new options, -gb|--go-back and -gburl|--go-back-url.
+  Using -gb will prepend a link entitled "Go Back" to the top of the header
+  on the index.html page. By default the link will go back to "..", the
+  previous directory. You can use the -gburl option to set a differnt url.
+- ChangeLog moved from top of jigl.pl file to it's own file.
+- Fixed a bug which was caused by an output change in newer versions of
+  the convert utility.
+- Added support for png files. (now support jpg, gif and png)
+- Changed the way we get the file size of the slides from using the
+  'identify' program to using the perl function - much cleaner solution.
+  Also removed the sizeToKb function since it's now useless.
+====================
+Version : 1.0rc3
+Date    : 03/04/2003
+- Third release candidate.
+- Turned link-original option off by default
+- Added -ws|--watermark-slides option for watermarking slides.
+- Added -wf|--watermark-file option for overriding the watermark file name
+- Added -wg|--watermark-gravite option for overriding the location of the
+  watermark on the image
+- Cleaned up the --help printout a bit.
+- fixed bug in getImgInfo which would bomb trying to get size/xy info
+  if the filename had certain chars. in it.
+====================
+Version : 1.0rc2
+Date    : 11/01/2002
+- Second release candidate.
+- Removed dependency on ImageMagickVersion in the getImgInfo function.
+- Fixed some slide templates to work correctly when info went off the
+  edge of the screen.
+- Removed dependency on the File::Copy function by using convert instead
+  of mogrify
+====================
+Version : 1.0rc1
+Date    : 10/20/2002
+- The first release candidate. Heavy testing begins.
+- The majority of useful options have been implimented.
+====================
+Version : 0.1
+Date    : 8/7/2002
+- Project started
