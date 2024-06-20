@@ -1,5 +1,5 @@
-#!/usr/bin/perl -w
-# jigl - Jason's Image Gallery
+#! /usr/bin/perl -w
+# jigl - Jigl's Image Gallery
 #
 ####################
 #  GNU General Public License
@@ -15,11 +15,12 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#  along with this program;
+#  https://www.gnu.org/licenses/ or https://fsf.org/
 #
 ####################
 # Author: Jason Paul
+# Current Author: R.K. Owen, Ph.D.
 
 use strict;
 use warnings;
@@ -37,8 +38,8 @@ use File::Glob qw(:nocase); # force case insensitivity
 ### setup some variables
 ######################
 
-my $version     = "v2.0.2-Beta";
-my $author      = "Jason Paul";
+my $version     = "v2.1.0-Beta";
+my $author      = "Jason Paul / R.K. Owen Ph.D.";
 my $progName    = $0;
 my $jpgTypeStr  = "*.jpg *.jpeg";
 my $gifTypeStr  = "*.gif";
