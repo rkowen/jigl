@@ -336,10 +336,18 @@ sub checkSiteInstall {
        print "       Please set this so jigl knows where to check for default settings.\n\n";
        exit 1;
    }
+   
+   # check to see if jhead is installed
+   my $tmp = qx/$exifProg/;    # run the 'identify' prog.
+   if ($? == -1) {
+       print "ERROR: $exifProg could not be found!.\n";
+       print "       Please make sure the EXIF tool $exifProg is in your path!\n\n";
+       exit 1;
+   }
 
    # check to see if ImageMagick is installed
    # exit with an error if it can't be found.
-   my $tmp = qx/$imgInfoProg/;    # run the 'identify' prog.
+   $tmp = qx/$imgInfoProg/;    # run the 'identify' prog.
    if ($? == -1) {
        print "ERROR: ImageMagick could not be found!.\n";
        print "       Please make sure the ImageMagick tools are in your path!\n\n";
@@ -1889,6 +1897,8 @@ Usage: $progName [options] [directories]
                       Note: Any options listed on the command line when using
                       recursion will be applied to all directories. 
                       Default is DISABLED.
+-z N                : set the number of digits to use for the number.
+                      If 0 then calculate the minimum number of digits.
 -h --help           : Display this information and exit
 -v --version        : Display version and exit
 -d --debug <0-5>    : Set debug level. Default is 0
