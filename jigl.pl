@@ -58,7 +58,7 @@ my $exifProg    = "jhead";             # program to extract exif info
 my $imgInfoProg = "identify";          # program to display image info
 my $scaleProg   = "convert";           # program to resize images
 my $waterMarkProg = &getWatermarkProg; # program to watermark images
-my $indexPrefix = "index";             # name of index file 
+my $indexPrefix = "index";             # name of index file
 my $indexExt    = ".html";             # extension for the index file
 my $indexTmpl   = "index_template";    # name of index template file
 my $slideTmpl   = "slide_template";    # name of slide template file
@@ -69,6 +69,7 @@ my $gblJsFile    = $gblThemeDir . "/default/" . $jsfile;    # global javascript
 my $gblSlideTmpl = $gblThemeDir . "/default/" . $slideTmpl; # global slide template
 my $gblInfoTmpl  = $gblThemeDir . "/default/" . $infoTmpl;  # global info template
 my @imgMgkVer    = &checkSiteInstall;  # check for img tools; return ImageMagick ver
+my $JsFileHead	= "<!--DEFAULT-JIGL.JS------";	# start of jigl.js
 
 ######################
 ### end variable setup
@@ -148,6 +149,9 @@ foreach my $dir (@dirs) {
     # was the -v or --version option called?
     &printVersion if $opts{v};
 
+    # was the -C or --clean option called?
+    &cleanStuff if $opts{C};
+
     # generate the albumInfo array
     my $albumInfo = &genAlbumInfo(\%opts,$dir);
 
@@ -202,7 +206,7 @@ foreach my $dir (@dirs) {
         # Copy any necessary theme files to the local themeDir
         # first remove the current themeDir so it doesn't get stale files
         rmtree("$themeDir",0,0) if -d $themeDir;
-        
+
         # flag to let us know if any files need to be copied
         my $filesCopied = 0;
 
@@ -220,47 +224,47 @@ foreach my $dir (@dirs) {
 	my $dieMsg = "";
         # see if we need to copy any files
         foreach my $file (@themeFileList) {
-    
+
             # We don't want to copy the standard theme files or any directories
             # They're not needed
             if (!-d $file && !($file =~ /$indexTmpl/) && !($file =~ /$slideTmpl/) && !($file =~ /$infoTmpl/) && !($file =~ /$opts{theme}\.theme/)) {
-    
+
                 # make sure the themeDir is created.
                 if (!-d $themeDir) {
                     $dieMsg = "Cannot create the directory '$themeDir'.\n";
                     mkdir "$themeDir",0755 or die "$dieMsg : $!\n";
                 }
-    
+
                 print "Copying the necessary theme files\n" if !$filesCopied;
                 $filesCopied = 1; # we only want to print above message once
-    
+
                 # copy the file to the themeDir
                 $dieMsg="Cannot copy $file to $themeDir\n";
                 copy "$file","$themeDir" or die "$dieMsg: $!\n";
             }
         }
-    
+
         # copy the thumb,slide and theme dir to the web-dir.
         # we won't do this if the web-dir is "." or the -uo or -lo opts are set
-        if ($opts{wd} ne "." && !$opts{uo} && !$opts{lo}) { 
+        if ($opts{wd} ne "." && !$opts{uo} && !$opts{lo}) {
             # remove the web-dir first to prevent stale files
             if (-d $opts{wd}) {
                 rmtree("$opts{wd}",0,0)
             }
-    
+
             # create the output directory for the gallery if need be
             $dieMsg = "Cannot create the directory '$opts{wd}'.\n";
             mkdir "$opts{wd}",0755 or die "$dieMsg : $!\n";
-        
+
             print "Copying the files to '$opts{wd}'\n";
             foreach my $dirToCopy ($thumbDir, $slideDir, $themeDir) {
-    
+
                 # if we need to copy that directory, do so
                 if (-d $dirToCopy) {
                     # make the new dir
                     $dieMsg="Cannot create the directory '$opts{wd}/$dirToCopy'.\n";
                     mkdir "$opts{wd}/$dirToCopy",0755 or die "$dieMsg : $!\n";
-    
+
                     # copy each file from that dir
                     foreach my $file (glob "$dirToCopy/*") {
                         $dieMsg="Cannot copy $file to $opts{wd}/$dirToCopy\n";
@@ -336,9 +340,9 @@ sub checkSiteInstall {
        print "       Please set this so jigl knows where to check for default settings.\n\n";
        exit 1;
    }
-   
+
    # check to see if jhead is installed
-   my $tmp = qx/$exifProg/;    # run the 'identify' prog.
+   my $tmp = qx/$exifProg -h/;    # run the 'jhead' prog.
    if ($? == -1) {
        print "ERROR: $exifProg could not be found!.\n";
        print "       Please make sure the EXIF tool $exifProg is in your path!\n\n";
@@ -347,7 +351,7 @@ sub checkSiteInstall {
 
    # check to see if ImageMagick is installed
    # exit with an error if it can't be found.
-   $tmp = qx/$imgInfoProg/;    # run the 'identify' prog.
+   $tmp = qx/$imgInfoProg -version/;    # run the 'identify' prog.
    if ($? == -1) {
        print "ERROR: ImageMagick could not be found!.\n";
        print "       Please make sure the ImageMagick tools are in your path!\n\n";
@@ -423,9 +427,9 @@ sub getDirs {
 # optsSys - default system options
 # rd - root directory to recurse on.
 # dl - an empty list used to store the resultant directory list.
-# 
+#
 # returns a list of the sub directories.
-# The initial directory is NOT included in the result. 
+# The initial directory is NOT included in the result.
 
 # This function also omits the following directories:
 # ., ..,  slides, thumbs, theme and web.
@@ -441,7 +445,7 @@ sub recursiveDirList {
         # while the directory can be read
         while (defined($_ = $d->read)) {
             # we want all dirs except ., ..,  slides, thumbs, theme and web.
-            if ((-d "$rd\/$_") && $_ ne "." && $_ ne ".." && $_ ne $slideDir && $_ ne $thumbDir && $_ ne $themeDir && $_ ne $optsSys{wd}) { 
+            if ((-d "$rd\/$_") && $_ ne "." && $_ ne ".." && $_ ne $slideDir && $_ ne $thumbDir && $_ ne $themeDir && $_ ne $optsSys{wd}) {
                 push @dl,"$rd\/$_"; # add this dir to our list
                 push @dl,&recursiveDirList("$rd\/$_",()); # check for subdirs
             }
@@ -493,6 +497,8 @@ sub setSystemOpts {
             "v"=> "0",     # display version
             "d"=> "0",     # debug level
 	    "x"=> ".html", # file extension
+	    "z"=> "-1",    # zero padding
+	    "C"=> "0",     # clean stuff
            );
 }
 
@@ -600,7 +606,8 @@ sub getCmdOpts {
     my (%opts) = %{$_[0]};
 
     # get the options and store them in the optsCmd hash.
-    &printUsage unless GetOptions(\%opts, 'cg|create-gallerydat',
+    &printUsage unless GetOptions(\%opts,
+               'cg|create-gallerydat',
                'uec|use-exif-comment!',
                'rs|replace-spaces=s',
                'ut|update-templates!',
@@ -632,10 +639,12 @@ sub getCmdOpts {
                'theme=s',
                'wd|web-dir=s',
                'r|recurse',
+               'z|pad-zero=i',
                'h|help',
                'v|version',
+               'C|clean',
                'd|debug=i',
-		'x|ext=s',
+               'x|ext=s',
               );
 
     # return the optsCmd hash
@@ -844,7 +853,7 @@ sub checkOpts {
 
         # reset to default if theme file doesn't exists.
         if (!(-e $gblThemeFile) && $opts{theme} ne $optsSys{theme}) {
-            print "Error: Cannot find the theme file: '$themeFile'\n"; 
+            print "Error: Cannot find the theme file: '$themeFile'\n";
             print "   Make sure it's in the directory '" . $gblThemeDir . "/" . $opts{theme} . "'\n";
             print "   Using the default theme.\n";
             $opts{theme} = $optsSys{theme};
@@ -1110,7 +1119,7 @@ sub genAlbumInfo {
         $numPages = int($#{$aInfo->{images}} / ($opts{iw} * $opts{ir}));
     }
     $aInfo->{numPages} = $numPages;
- 
+
     # replace spaces in filenames with underscores
     &convertFileNames($aInfo,$opts{rs}) if $filesWithSpaces;
 
@@ -1221,7 +1230,7 @@ sub convertFileNames {
                     trimWS($file);    # trim whitespace
                     trimWS($desc);    # trim whitespace
                     $file =~ s/ /_/g; # replace the spaces with underscores
- 
+
                     # write the line back to the file
                     print WFILE "$file ---- $desc\n";
                 }
@@ -1598,7 +1607,7 @@ sub genSlides {
 #
 # side effects: if the -uec option is set and there is an exif comment in
 # the exif header, then the slide description will be overwritten with the
-# exif comment. 
+# exif comment.
 #
 sub genExifInfo {
     my (%opts) = %{$_[0]};   # options hash
@@ -1735,11 +1744,53 @@ sub trimWS
 }
 
 ###########################################################
+# cleanStuff - Clean up most of the generated files
+#
+sub cleanStuff {
+	# remove any existing html files to prevent stale files
+	my @fileList = glob($indexPrefix . "*" . $indexExt);
+	push @fileList,glob("[0-9]*" . $indexExt);
+	&removeFiles(@fileList);
+
+	&removeFiles($themeDir);
+	&removeFiles($thumbDir);
+
+	&removeFiles(($jsfile))
+		if (! &TypeFile($jsfile,$JsFileHead));
+
+	exit 0;
+}
+
+###########################################################
+# TypeFile - read first line and return 0 if the first
+#	few characters match the given input in the file
+#	else non-zero.  (if < 0 then can't read file.)
+#
+sub TypeFile {
+	my ($file, $match) = @_;
+
+	if (-f $file) {
+		open my $fh, "<", $file
+			or die "Can not open $file\n";
+		my $line = readline($fh);
+		if ($line =~ /^$match/) {
+			close $fh;
+			return 0;
+		} else {
+			close $fh;
+			return 1;
+		}
+	} else {
+		return -1;
+	}
+}
+
+###########################################################
 # printVersion - prints the version info and exists
 #
 sub printVersion {
-    print "\nJason's Image Gallery - jigl\n";
-    print "Version $version (c)2002-2003 $author\n";
+    print "\nJigl's Image Gallery - jigl\n";
+    print "Version $version (c)2002-2024 $author\n";
     print "Please run '$progName -h' for help\n\n";
     exit 0;
 }
@@ -1756,7 +1807,7 @@ Usage: $progName [options] [directories]
 -uec --use-exif-comment
                     : Use the comment field in the exif header (if it exists)
                       as the slide comment. This will overwrite the description
-                      that is written in a gallery.dat file. If used in 
+                      that is written in a gallery.dat file. If used in
                       conjunction with the -cg option, the comment field will
                       be saved in the gallery.dat file.
                       Default is DISABLED. (can be negated).
@@ -1814,7 +1865,7 @@ Usage: $progName [options] [directories]
                       on the slide pages. If this option is turned off, info
                       pages will not be generated and the "info" link on the
                       slide pages will dissapear.  If no slides are generated,
-                      then the info pages will be linked directly to the 
+                      then the info pages will be linked directly to the
                       thumbnails.
                       Default is ENABLED. (can be negated).
 -sy --slideY <int>  : Scale all slides along the Y-axis to the value given.
@@ -1895,10 +1946,11 @@ Usage: $progName [options] [directories]
                       This option will ONLY be recognized from the command
                       line to help prevent accidents.
                       Note: Any options listed on the command line when using
-                      recursion will be applied to all directories. 
+                      recursion will be applied to all directories.
                       Default is DISABLED.
--z N                : set the number of digits to use for the number.
+-z --pad-zero N     : set the number of digits to use for the number.
                       If 0 then calculate the minimum number of digits.
+-C --clean          : clean out image related  generated files!  Be careful.
 -h --help           : Display this information and exit
 -v --version        : Display version and exit
 -d --debug <0-5>    : Set debug level. Default is 0
@@ -1935,7 +1987,7 @@ exit 0;
 
 ###########################################################
 # removeFiles - remove a list of files, if there is a directory listed it
-# will recrusively delete the entire directory as well.
+# will recursively delete the entire directory as well.
 #
 sub removeFiles {
     my (@files) = @_;
@@ -2082,7 +2134,7 @@ sub genIndexPage {
 
                     # is this the last of the pictures?
                     $donePics=1 if ($imgIndex == $endIndex);
-  
+
                     # add a thumbnail to the row
                     if ($tmpVar =~ /IMG-COLUMN/) {
                         # remove the link portion of the key if we are not
@@ -2549,6 +2601,7 @@ sub genJavaScript {
     open(JSFILE,">$gblJsFile") or die "Cannot open $gblJsFile: $!\n";
 
 print JSFILE <<endoftemplate;
+$JsFileHead-REMOVE-THIS-LINE-IF-CUSTOM-FILE--------->
 <!---------------------------------------------------------------->
 function resizeJglPix(pix){
 	var ww = 0;
@@ -2898,7 +2951,7 @@ sub genInfoPages {
                 # each name (i.e. date, apature, shutter speed, flash...),
                 # will have a <nobr>before it, and a <br/> after it.
                 # this is really meant to be put in a <td></td> column
-             
+
                 # do we have exifInfo to print
                 if ($#{$albumInfo->{images}[$curr0Index]->{exif}} > 0) {
                     $tmpVar = ""; # clear out the var
@@ -2917,7 +2970,7 @@ sub genInfoPages {
                 # each value (corresponding to the names above)
                 # will have a <nobr/>before it, and a <br/> after it.
                 # this is really meant to be put in a <td></td> column
-             
+
                 # do we have exifInfo to print
                 if ($#{$albumInfo->{images}[$curr0Index]->{exif}} > 0) {
                     $tmpVar = ""; # clear out the var
