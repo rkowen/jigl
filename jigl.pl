@@ -193,6 +193,7 @@ foreach my $dir (@dirs) {
         &genInfoPages(\%opts,\%theme,$albumInfo)	if $opts{gi};
 
         # generate the index page(s)
+# xxx
         for my $page (0 .. $albumInfo->{numPages}) {
             # figure out which thumbnails we're going to list on this page
             my $startIndex = $page * ($opts{iw} * $opts{ir});
@@ -924,7 +925,7 @@ sub mergeOpts {
     # debug - print all the options and when the got set.
     if ($opts{d} >= 2) {
         print "\nFinal Options:\nKey:\tSys\tRC\tGal\tCmd\tOpts\n";
-        foreach my $key (keys %$sys) {
+        foreach my $key (sort keys %$sys) {
             print "$key:\t$$sys{$key}\t";
             if (defined $$rc{$key}) {
                 print "$$rc{$key}\t"
@@ -1112,8 +1113,18 @@ sub genAlbumInfo {
         print "$picCnt of " . ($picCnt + $skipCnt) ." image files found in the directory were valid.\n";
 
     }
+# Find the width for the index number
+    $aInfo->{numWidth} = length(sprintf "%d", $picCnt);
+	if ($opts{z} < 0) {
+    		$aInfo->{numWidth} = 0;
+	} elsif ($opts{z} > 0) {
+    		$aInfo->{numWidth} = (
+			  $opts{z} > $aInfo->{numWidth}
+			? $opts{z} : $aInfo->{numWidth});
+	}
 
     # figure out how many index pages need to be generated (zero based)
+    # and maximum width to contain the number
     my $numPages = 0;
     if ($opts{ir} > 0 && (($opts{iw} * $opts{ir}) <= $#{$aInfo->{images}})) {
         $numPages = int($#{$aInfo->{images}} / ($opts{iw} * $opts{ir}));
@@ -1600,6 +1611,7 @@ sub genSlides {
 # genExifInfo - generate the exif info for each jpeg image
 #
 # generates exif info for all jpg images.
+# And also the index number with the proper width;
 #
 # input:
 # reference to the options hash
@@ -1619,6 +1631,10 @@ sub genExifInfo {
         # get the name of the file
         my $tmpFile = $albumInfo->{images}[$i]->{file};
 
+	# generate the proper width index number
+        $albumInfo->{images}[$i]->{idx} = sprintf("%0*i",
+		$albumInfo->{numWidth},$i+1);
+
         # set the exif info for the image
         $albumInfo->{images}[$i]->{exif} = &getExifInfo($tmpFile);
 
@@ -1628,7 +1644,7 @@ sub genExifInfo {
             my $haveComment = 0;
 	    my $desc = "";
             for my $j (0 .. $#{$albumInfo->{images}[$i]->{exif}}) {
-                if ($albumInfo->{images}[$i]->{exif}->[$j]{field} eq "Comment") {
+                if ($albumInfo->{images}[$i]->{exif}->[$j]{field} eq "Comment"){
                     if ($haveComment eq 0) {
                         # first line of the comment.
                         $desc = $albumInfo->{images}[$i]->{exif}->[$j]{val};
@@ -2016,6 +2032,7 @@ sub genIndexPage {
     my $row = 0;  # keep track of what row we're on
     my $col = 0;  # keep track of what image we're on
     my $col1 = 0; # keep track of what imgae we're on for size and dimensions
+    my $imgNum = ""; # the image formatted number
     my $thumbName = ""; # tmp variable to store thumbnail name
     my $thumbX = "";    # tmp variable to store the thumbnails X dimension
     my $thumbY = "";    # tmp variable to store the thumbnails Y dimension
@@ -2131,6 +2148,7 @@ sub genIndexPage {
                     $thumbName =~ s/ /\%20/g;
                     $thumbX  = $albumInfo->{images}[$imgIndex]->{thumbx};
                     $thumbY  = $albumInfo->{images}[$imgIndex]->{thumby};
+                    $imgNum  = $albumInfo->{images}[$imgIndex]->{idx};
 
                     # is this the last of the pictures?
                     $donePics=1 if ($imgIndex == $endIndex);
@@ -2151,9 +2169,9 @@ sub genIndexPage {
                     if ($tmpVar =~ /THUMB-LINK/) {
 			my $tmpLink;
                         if ($opts{gs}) {
-                            $tmpLink = $imgIndex+1 . $indexExt;
+                            $tmpLink = $imgNum . $indexExt;
                         } elsif ($opts{gi}) {
-                            $tmpLink = $imgIndex+1 . "_info$indexExt";
+                            $tmpLink = $imgNum . "_info$indexExt";
                         } else {
                             $tmpLink = $thumbName;
                         }
@@ -2246,6 +2264,7 @@ sub genIndexPage {
             $tmpVar = ""; # clear out the tmp variable
             # only print this if we have more than one page
             if ($albumInfo->{numPages} > 0) {
+# xxx
                 for my $i (0 .. $albumInfo->{numPages}) {
 		    my $tmpPage;
                     if ($i == 0) {
@@ -2293,7 +2312,7 @@ sub genIndexTemplate {
 
 print INDEXTMPL <<endoftemplate;
 <html>
-<!-- Created with jigl - http://xome.net/projects/jigl -->
+<!-- Created with jigl - https://github.com/rkowen/jigl.git -->
 <!-- -->
 <!-- The tag names in this template are used by jigl to insert html code.
      The tags are in all capitals. They can be moved around in the template
@@ -2357,7 +2376,7 @@ INDEX-FOOTER
         <td><table text="#111111" width=100% border=0 cellspacing=0 cellpadding=3>
             <tr>
                 <td align=left class=hdr_ftr>Created on: TIME-STAMP</td>
-                <td align=right class=hdr_ftr>Created with <a href="http://xome.net/projects/jigl/">jigl</a></td>
+                <td align=right class=hdr_ftr>Created with <a href="https://github.com/rkowen/jigl.git">jigl</a></td>
             </tr>
         </table></td>
     </tr>
@@ -2411,12 +2430,12 @@ sub genSlidePages {
     my $slideFile = "";  # file name to create
     my $slideX = "";     # tmp variable to store the slides X dimension
     my $slideY = "";     # tmp variable to store the slides Y dimension
-    my $curr0Index = ""; # 0 based index of this image
-    my $curr1Index = ""; # 1 based index of this image
-    my $prev0Index = ""; # 0 index of previous image
-    my $prev1Index = ""; # 1 index of previous image
-    my $next0Index = ""; # 0 index of next image
-    my $next1Index = ""; # 1 index of next image
+    my $curr0Index = 0;  # 0 based index of this image 
+    my $curr1Index = ""; # expanded index of this image 
+    my $prev0Index = 0;  # 0 index of previous image
+    my $prev1Index = ""; # expanded index of previous image
+    my $next0Index = 0;  # 0 index of next image
+    my $next1Index = ""; # expanded index of next image
     my $tmpVar     = ""; # temp variable
     my $line       = ""; # variable to store current template line in
     my $themeLine  = 0;  # a line was inserted into the template by a theme
@@ -2439,26 +2458,25 @@ sub genSlidePages {
 
     # create one slide for each image
     for $curr0Index (0 .. $#{$albumInfo->{images}}) {
+# xxx
         # setup all the 0 and 1 based index values
-        $curr1Index = $curr0Index + 1;
         $prev0Index = $curr0Index - 1;
-        $prev1Index = $curr0Index;
-        $next0Index = $curr1Index;
-        $next1Index = $curr1Index + 1;
+        $next0Index = $curr0Index + 1;
 
         # handle some special cases
         if ($curr0Index == 0) {
             # this is the first file.
             # the previous index will be the last index
             $prev0Index = $#{$albumInfo->{images}};
-            $prev1Index = $#{$albumInfo->{images}} + 1;
         }
         if ($curr0Index == $#{$albumInfo->{images}}) {
             # this is the last file.
             # the next index will be the first index
             $next0Index = 0;
-            $next1Index = 1;
         }
+        $curr1Index = $albumInfo->{images}[$curr0Index]->{idx};
+        $prev1Index = $albumInfo->{images}[$prev0Index]->{idx};
+        $next1Index = $albumInfo->{images}[$next0Index]->{idx};
 
         # figure out what files we're supposed to be creating and linking to.
         my $slideFile     = "$curr1Index$indexExt";
@@ -2469,6 +2487,7 @@ sub genSlidePages {
         my $pgIndex = int($curr0Index / ($opts{iw} * $opts{ir}))
 		if $opts{ir} > 0;
 	my $indexFile;
+# xxx
         if (($albumInfo->{numPages} == 0) or $pgIndex == 0) {
             $indexFile = $indexPrefix . $indexExt;
         } else {
@@ -2498,11 +2517,11 @@ sub genSlidePages {
                         if ($key eq "INFO-LINK" and !$opts{gi}) {
                             $line =~ s/$key//g;
                             $themeLine = 1;
-                        } elsif ($key eq "NEXT-SLIDE-LINK" and $curr1Index == ($#{$albumInfo->{images}} + 1)) {
+                        } elsif ($key eq "NEXT-SLIDE-LINK" and $curr0Index == ($#{$albumInfo->{images}})) {
                             # this is the last slide
                             $line =~ s/$key/LAST-SLIDE-NEXT-LINK/g;
                             $themeLine = 1;
-                        } elsif ($key eq "PREV-SLIDE-LINK" and $curr1Index == 1) {
+                        } elsif ($key eq "PREV-SLIDE-LINK" and $curr0Index == 0) {
                             # this is the first slide
                             $line =~ s/$key/FIRST-SLIDE-PREV-LINK/g;
                             $themeLine = 1;
@@ -2567,7 +2586,7 @@ sub genSlidePages {
 
             }
             if ($line =~ /SLIDE-COUNT/) {
-                $tmpVar = "\(" . $curr1Index . "\/" . ($#{$albumInfo->{images}} + 1) . "\)";
+                $tmpVar = "\(" . ($curr0Index+1) . "\/" . ($#{$albumInfo->{images}} + 1) . "\)";
                 $line =~ s/SLIDE-COUNT/$tmpVar/g;
             }
 	    if ($line =~ /INDEX-TITLE/) {
@@ -2668,7 +2687,7 @@ sub genSlideTemplate {
 
 print SLIDETMPL <<endoftemplate;
 <html>
-<!-- Created with jigl - http://xome.net/projects/jigl -->
+<!-- Created with jigl - https://github.com/rkowen/jigl.git -->
 <!-- -->
 <!-- The tag names in this template are used by jigl to insert html code.
      The tags are in all capitals. They can be moved around in the template
@@ -2748,12 +2767,12 @@ sub genInfoPages {
     my $nextInfoFile  = ""; # previous info page
     my $slideX = "";     # tmp variable to store the slides X dimension
     my $slideY = "";     # tmp variable to store the slides Y dimension
-    my $curr0Index = ""; # 0 based index of this image
-    my $curr1Index = ""; # 1 based index of this image
-    my $prev0Index = ""; # 0 index of previous image
-    my $prev1Index = ""; # 1 index of previous image
-    my $next0Index = ""; # 0 index of next image
-    my $next1Index = ""; # 1 index of next image
+    my $curr0Index = 0;  # 0 based index of this image 
+    my $curr1Index = ""; # expanded index of this image 
+    my $prev0Index = 0;  # 0 index of previous image
+    my $prev1Index = ""; # expanded index of previous image
+    my $next0Index = 0;  # 0 index of next image
+    my $next1Index = ""; # expanded index of next image
     my $tmpVar     = ""; # temp variable
     my $line       = ""; # variable to store current template line in
     my $themeLine  = 0;  # a line was inserted into the template by a theme
@@ -2774,28 +2793,27 @@ sub genInfoPages {
 
     print "Generating the info html pages\n";
 
+# xxx
     # create one info page for each image
     for my $curr0Index (0 .. $#{$albumInfo->{images}}) {
         # setup all the 0 and 1 based index values
-        my $curr1Index = $curr0Index + 1;
-        my $prev0Index = $curr0Index - 1;
-        my $prev1Index = $curr0Index;
-        my $next0Index = $curr1Index;
-        my $next1Index = $curr1Index + 1;
+        $prev0Index = $curr0Index - 1;
+        $next0Index = $curr0Index + 1;
 
         # handle some special cases
         if ($curr0Index == 0) {
             # this is the first file.
             # the previous index will be the last index
             $prev0Index = $#{$albumInfo->{images}};
-            $prev1Index = $#{$albumInfo->{images}} + 1;
         }
         if ($curr0Index == $#{$albumInfo->{images}}) {
             # this is the last file.
             # the next index will be the first index
             $next0Index = 0;
-            $next1Index = 1;
         }
+        $curr1Index = $albumInfo->{images}[$curr0Index]->{idx};
+        $prev1Index = $albumInfo->{images}[$prev0Index]->{idx};
+        $next1Index = $albumInfo->{images}[$next0Index]->{idx};
 
         # figure out what files we're supposed to be creating and linking to.
         my $infoFile      =  $curr1Index ."_info$indexExt";
@@ -2808,6 +2826,7 @@ sub genInfoPages {
         my $pgIndex = int($curr0Index / ($opts{iw} * $opts{ir}))
 		if $opts{ir} > 0;
 	my $indexFile;
+# xxx
         if (($albumInfo->{numPages} == 0) or $pgIndex == 0) {
             $indexFile = $indexPrefix . $indexExt;
         } else {
@@ -2843,19 +2862,19 @@ sub genInfoPages {
                         } elsif ($key eq "THIS-SLIDE-LINK" and !$opts{gs}) {
                             $line =~ s/$key//g;
                             $themeLine = 1;
-                        } elsif ($key eq "NEXT-INFO-LINK" and $curr1Index == ($#{$albumInfo->{images}} + 1)) {
+                        } elsif ($key eq "NEXT-INFO-LINK" and $curr0Index == ($#{$albumInfo->{images}})) {
                             # this is the last info page
                             $line =~ s/$key/LAST-INFO-NEXT-LINK/g;
                             $themeLine = 1;
-                        } elsif ($key eq "NEXT-SLIDE-LINK" and $curr1Index == ($#{$albumInfo->{images}} + 1)) {
+                        } elsif ($key eq "NEXT-SLIDE-LINK" and $curr0Index == ($#{$albumInfo->{images}})) {
                             # this is the last slide
                             $line =~ s/$key/LAST-SLIDE-NEXT-LINK/g;
                             $themeLine = 1;
-                        } elsif ($key eq "PREV-INFO-LINK" and $curr1Index == 1) {
+                        } elsif ($key eq "PREV-INFO-LINK" and $curr0Index == 0) {
                             # this is the first info page
                             $line =~ s/$key/FIRST-INFO-PREV-LINK/g;
                             $themeLine = 1;
-                        } elsif ($key eq "PREV-SLIDE-LINK" and $curr1Index == 1) {
+                        } elsif ($key eq "PREV-SLIDE-LINK" and $curr0Index == 0) {
                             # this is the first slide
                             $line =~ s/$key/FIRST-SLIDE-PREV-LINK/g;
                             $themeLine = 1;
@@ -3016,7 +3035,7 @@ sub genInfoTemplate {
 
 print INFOTMPL <<endoftemplate;
 <html>
-<!-- Created with jigl - http://xome.net/projects/jigl -->
+<!-- Created with jigl - https://github.com/rkowen/jigl.git -->
 <!-- -->
 <!-- The tag names in this template are used by jigl to insert html code.
      The tags are in all capitals. They can be moved around in the template
